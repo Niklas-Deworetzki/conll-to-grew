@@ -1,0 +1,49 @@
+[project]
+name = 'conll-to-grew'
+version = '1.0.0'
+description = 'Translate underspecified CoNLL-U sentences into Grew-match queries.'
+keywords = ['corpus search', 'query translation', 'grew', 'conllu', 'conll', 'conll-u', 'nlp']
+classifiers = [
+    'Development Status :: 5 - Production/Stable',
+    'Intended Audience :: Developers',
+    'Intended Audience :: Science/Research',
+    'Topic :: Scientific/Engineering :: Interface Engine/Protocol Translator',
+    'Topic :: Text Processing :: Linguistic',
+    'Typing :: Typed'
+]
+
+license = 'MPL-2.0'
+readme = { file = 'README.md', content-type = 'text/markdown' }
+authors = [
+    { name = 'Niklas Deworetzki' },
+]
+
+requires-python = '>=3.12,<4'
+dependencies = [
+    'conllu==6.1.1',
+]
+
+[project.urls]
+Homepage = 'https://github.com/Niklas-Deworetzki/conll-to-grew'
+Issues = 'https://github.com/Niklas-Deworetzki/conll-to-grew/issues'
+
+[tool.setuptools.packages.find]
+where = ['src']
+exclude = ['tests']
+
+[tool.black]
+line-length = 100
+skip-string-normalization = true
+
+[tool.pylint]
+max-line-length = 100
+min-public-methods = 0
+allowed-redefined-builtins = [
+    'id', 'type'
+]
+disable = [
+    'W0401', # wildcard-import
+
+    'C0114', # missing-module-docstring
+    'C0115', # missing-class-docstring
+]
