@@ -42,8 +42,6 @@ allowed-redefined-builtins = [
     'id', 'type'
 ]
 disable = [
-    'W0401', # wildcard-import
-
     'C0114', # missing-module-docstring
     'C0115', # missing-class-docstring
 ]
