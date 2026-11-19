@@ -21,15 +21,6 @@ def field_parser[A](f: Callable[[str], A]) -> Callable[[list[str], int], A]:
 
 
 @field_parser
-def parse_unchanged(value: str) -> str:
-    """
-    Identity field parser used to parse the head column.
-    We allow use of identifiers for the head and not just numerical ids.
-    """
-    return value
-
-
-@field_parser
 def parse_nullable(value: str) -> Optional[str]:
     """
     Field parser recognizing "_" as None.
@@ -58,9 +49,9 @@ def parse_dict(value: str) -> dict[str, str]:
     return result
 
 
-# This more permissive than CoNLL-U, allowing each field apart from ID to be unspecified.
+# This more permissive than CoNLL-U, allowing each field to be unspecified.
 FIELD_PARSERS: dict[str, Callable[[list[str], int], Any]] = {
-    'id': parse_unchanged,
+    'id': parse_nullable,
     'form': parse_nullable,
     'lemma': parse_nullable,
     'upos': parse_nullable,
@@ -95,7 +86,9 @@ def parse_conllu_sentence(s: str) -> list[conllu.Token]:
 
     sentence = parsed[0]
     return [
-        token for token in sentence if not is_multiword_token(token) and not is_empty_node(token)
+        token
+        for token in sentence
+        if token['id'] is None or (not is_multiword_token(token) and not is_empty_node(token))
     ]
 
 

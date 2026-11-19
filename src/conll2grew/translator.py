@@ -71,32 +71,34 @@ def extract_edges(environment: Environment, tokens: list[conllu.Token]) -> Itera
 
 
 def extract_order_clauses(
-    environment: Environment, tokens: list[conllu.Token]
+    nodes: list[NodeClause], tokens: list[conllu.Token]
 ) -> Iterator[OrderClause]:
     """
     Produces an OrderClause for every reserved annotation
     defining order present in the given sentence.
     """
 
-    for lhs, rhs in zip(tokens, tokens[1:]):
-        if ReservedAnnotation.ORDERED.is_present_on(rhs):
+    for i in range(1, len(tokens)):
+        token = tokens[i]
+
+        if ReservedAnnotation.ORDERED.is_present_on(token):
             yield OrderClause(
-                environment[lhs['id']],
+                nodes[i - 1].label,
                 OrderClause.Order.PRECEDENCE,
-                environment[rhs['id']],
+                nodes[i].label,
             )
 
-        if ReservedAnnotation.SUBSEQUENT.is_present_on(rhs):
+        if ReservedAnnotation.SUBSEQUENT.is_present_on(token):
             yield OrderClause(
-                environment[lhs['id']],
+                nodes[i - 1].label,
                 OrderClause.Order.IMMEDIATE_PRECEDENCE,
-                environment[rhs['id']],
+                nodes[i].label,
             )
 
 
-def make_environment(token_ids: Iterable[str]) -> Environment:
+def find_identifier(used_identifiers: set[Identifier], token: conllu.Token) -> Identifier:
     """
-    Create a mapping from Token ID columns to Grew identifiers.
+    Finds an identifier to use for the given token.
     """
 
     def generate_ids() -> Iterator[Identifier]:
@@ -105,23 +107,43 @@ def make_environment(token_ids: Iterable[str]) -> Environment:
             yield f'T{n}'
             n += 1
 
-    used_identifiers = set()
-    result = {}
-
-    for token_id in token_ids:
-        target = None
-
+    target = None
+    if token_id := token['id']:
         if token_id.isnumeric():
-            target = 'T' + token_id
+            target = f'T{token_id}'
         elif not string_requires_quotes(token_id):
             target = token_id
 
-        if target is None or target in used_identifiers:
-            target = next(filter(lambda t: t not in used_identifiers, generate_ids()))
+    if target is None or target in used_identifiers:
+        generator = generate_ids()
 
-        used_identifiers.update(target)
-        result[token_id] = target
-    return result
+        target = next(generator)
+        while target in used_identifiers:
+            target = next(generator)
+    return target
+
+
+def extract_nodes_and_environment(
+    tokens: list[conllu.Token],
+) -> tuple[list[NodeClause], Environment]:
+    """
+    Creates NodeClause instances for all given tokens and produces an environment mapping
+    CoNLL-U IDs to NodeClause identifiers.
+    """
+    nodes: list[NodeClause] = []
+    environment: Environment = {}
+
+    assigned_identifiers = set()
+    for token in tokens:
+        identifier = find_identifier(assigned_identifiers, token)
+        assigned_identifiers.add(identifier)
+
+        if token_id := token['id']:
+            environment[token_id] = identifier
+
+        nodes.append(NodeClause(identifier, list(extract_features(token))))
+
+    return nodes, environment
 
 
 def translate_to_grew(conll: str) -> Request:
@@ -129,11 +151,8 @@ def translate_to_grew(conll: str) -> Request:
 
     sentence = parse_conllu_sentence(conll)
 
-    tokens = {token['id']: list(extract_features(token)) for token in sentence}
-    environment = make_environment(tokens)
-
-    nodes = [NodeClause(environment[key], features) for key, features in tokens.items()]
+    nodes, environment = extract_nodes_and_environment(sentence)
     edges = list(extract_edges(environment, sentence))
-    constraints = list(extract_order_clauses(environment, sentence))
+    constraints = list(extract_order_clauses(nodes, sentence))
 
     return Request(nodes + edges + constraints)
