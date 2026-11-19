@@ -77,7 +77,7 @@ def is_empty_node(token: conllu.Token) -> bool:
 def parse_conllu_sentence(s: str) -> list[conllu.Token]:
     """Parses a given string into a list of Token"""
     try:
-        parsed = conllu.parse(s, fields=FIELD_PARSERS)
+        parsed = conllu.parse(s, field_parsers=FIELD_PARSERS)
     except ParseException as ex:
         raise ValueError(f'Invalid CoNLL-U: {ex}') from ex
 
