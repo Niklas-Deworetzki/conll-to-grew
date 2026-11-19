@@ -39,7 +39,7 @@ class FeatureEquals(Feature):
     value: str
 
     def __str__(self) -> str:
-        return f'{self.feature} = {Literal(self.value)}'
+        return f'{self.feature}={Literal(self.value)}'
 
 
 # Arrow
@@ -77,8 +77,8 @@ class NodeClause(Clause):
     features: Sequence[Feature]
 
     def __str__(self) -> str:
-        feature_structure = '|'.join(map(str, self.features))
-        return f'{self.label} {feature_structure}'
+        feature_structure = ', '.join(map(str, self.features))
+        return f'{self.label} [{feature_structure}]'
 
 
 @dataclass
