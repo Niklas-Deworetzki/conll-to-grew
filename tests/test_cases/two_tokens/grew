@@ -1,0 +1,4 @@
+pattern {
+	A [form=token, lemma=token, upos=NOUN, xpos=NN, Feat1="Val1", Feat2="Val2", Misc1="Val1", Misc2="Val2", Misc3="Val3"];
+	B [];
+}
