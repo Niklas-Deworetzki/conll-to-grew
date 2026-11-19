@@ -2,7 +2,7 @@
 Translation of CoNLL-U sentence into a Grew-match Request.
 """
 
-from typing import Iterable, Iterator, Optional
+from typing import Iterator, Optional
 
 import conllu
 
@@ -10,9 +10,9 @@ from conll2grew.conllq import ReservedAnnotation, parse_conllu_sentence
 from conll2grew.syntax import (
     Arrow,
     EdgeClause,
-    Identifier,
     Feature,
     FeatureEquals,
+    Identifier,
     NodeClause,
     OrderClause,
     Request,
